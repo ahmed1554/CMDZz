@@ -70,6 +70,7 @@ class Terminal {
         System.setProperty("user.dir", path.toString());
     }
 
+
     // prints the current path
     public void pwd() {
         System.out.println(path.toString());
@@ -85,7 +86,7 @@ class Terminal {
 
     // Sorts the files and folders and displays them
     public void ls() {
-        File currentFolder = new File(".");
+        File currentFolder = new File(String.valueOf(path));
         String[] allFilesandFolders = currentFolder.list();
         Arrays.sort(allFilesandFolders);
         for (int i = 0; i < allFilesandFolders.length; i++) {
@@ -95,7 +96,7 @@ class Terminal {
 
     // Sorts the files and folders descendingly and displays them
     public void ls_r() {
-        File currentFolder = new File(".");
+        File currentFolder = new File(String.valueOf(path));
         String[] allFilesandFolders = currentFolder.list();
         Arrays.sort(allFilesandFolders);
         for (int i = allFilesandFolders.length - 1; i >= 0; i--) {
@@ -107,8 +108,7 @@ class Terminal {
     public void mkdir(String[] args) {
         for (int i = 0; i < args.length; i++) {
             try {
-                Files.createDirectory(Paths.get(System.getProperty("user.dir") + "\\" + args[i]));
-                System.out.println(System.getProperty("user.dir"));
+                Files.createDirectory(Paths.get(String.valueOf(path) + "\\" + args[i]));
             } catch (IOException e) {
                 System.err.println("Failed to create directory: " + args[i]);
             }
@@ -120,13 +120,13 @@ class Terminal {
         // if the user entered * it will delete all the empty folders and files in the
         // current directory
         if (args[0].equals("*")) {
-            File currentFolder = new File(System.getProperty("user.dir"));
+            File currentFolder = new File(String.valueOf(path));
             File[] allFilesandFolders = currentFolder.listFiles();
             for (int i = 0; i < allFilesandFolders.length; i++) {
                 allFilesandFolders[i].delete();
             }
         } else {
-            File deleteFile = new File(System.getProperty("user.dir") + "\\" + args[0]);
+            File deleteFile = new File(String.valueOf(path) + "\\" + args[0]);
             if (deleteFile.isDirectory() && deleteFile.listFiles().length != 0) {
                 System.out.println("Cannot remove non-empty folder");
                 return;
@@ -213,11 +213,6 @@ class Terminal {
         }
     }
 
-
-}
-
-public class Main {
-
     public static void main(String[] args) {
 
         Scanner input = new Scanner(System.in);
@@ -235,6 +230,7 @@ public class Main {
 
         }
     }
-
 }
+
+
 
