@@ -1,5 +1,4 @@
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +12,6 @@ class Parser {
     // This method will divide the input into commandName and args
     // where "input" is the string command entered by the user
     public boolean parse(String input) {
-        history.add(input);
         String[] splitInput = input.split(" ");
         if (splitInput.length == 0) {
             return false; // Invalid input
@@ -70,7 +68,6 @@ class Terminal {
         System.setProperty("user.dir", path.toString());
     }
 
-
     // prints the current path
     public void pwd() {
         System.out.println(path.toString());
@@ -86,7 +83,7 @@ class Terminal {
 
     // Sorts the files and folders and displays them
     public void ls() {
-        File currentFolder = new File(String.valueOf(path));
+        File currentFolder = new File(".");
         String[] allFilesandFolders = currentFolder.list();
         Arrays.sort(allFilesandFolders);
         for (int i = 0; i < allFilesandFolders.length; i++) {
@@ -96,7 +93,7 @@ class Terminal {
 
     // Sorts the files and folders descendingly and displays them
     public void ls_r() {
-        File currentFolder = new File(String.valueOf(path));
+        File currentFolder = new File(".");
         String[] allFilesandFolders = currentFolder.list();
         Arrays.sort(allFilesandFolders);
         for (int i = allFilesandFolders.length - 1; i >= 0; i--) {
@@ -108,7 +105,8 @@ class Terminal {
     public void mkdir(String[] args) {
         for (int i = 0; i < args.length; i++) {
             try {
-                Files.createDirectory(Paths.get(String.valueOf(path) + "\\" + args[i]));
+                Files.createDirectory(Paths.get(System.getProperty("user.dir") + "\\" + args[i]));
+                System.out.println(System.getProperty("user.dir"));
             } catch (IOException e) {
                 System.err.println("Failed to create directory: " + args[i]);
             }
@@ -120,13 +118,13 @@ class Terminal {
         // if the user entered * it will delete all the empty folders and files in the
         // current directory
         if (args[0].equals("*")) {
-            File currentFolder = new File(String.valueOf(path));
+            File currentFolder = new File(System.getProperty("user.dir"));
             File[] allFilesandFolders = currentFolder.listFiles();
             for (int i = 0; i < allFilesandFolders.length; i++) {
                 allFilesandFolders[i].delete();
             }
         } else {
-            File deleteFile = new File(String.valueOf(path) + "\\" + args[0]);
+            File deleteFile = new File(System.getProperty("user.dir") + "\\" + args[0]);
             if (deleteFile.isDirectory() && deleteFile.listFiles().length != 0) {
                 System.out.println("Cannot remove non-empty folder");
                 return;
@@ -134,84 +132,123 @@ class Terminal {
             deleteFile.delete();
         }
     }
+    public void cat(String [] args)
+    {
 
-    // shows commands history
-    public void history() {
-        for (int i = 0; i < parser.history.size(); i++) {
-            System.out.println((i + 1) + "- " + parser.history.get(i));
-        }
-    }
+        try{
+            for(int i = 0 ; i <args.length ; i++){
 
-    // creates a file
-    public void touch(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Usage: touch [file]");
-        } else {
-            Path newFile = path.resolve(args[0]);
-            try {
-                if (Files.notExists(newFile)) {
-                    Files.createFile(newFile);
-                    System.out.println("File created: " + args[0]);
-                } else {
-                    System.out.println("File already exists: " + args[0]);
+                FileInputStream file = new FileInputStream(args[i]);
+                int data    ;
+
+                while( (data=file.read() ) != -1 ){
+
+                    System.out.print((char) data ) ;
+
                 }
-            } catch (IOException e) {
-                System.out.println("Error creating file: " + e.getMessage());
-            }
+            System.out.println(" ");
+
+            file.close();}
+
         }
+
+
+
+        catch (FileNotFoundException e){
+            System.out.println("the file is not found");
+        }
+        catch (IOException e) {
+            System.out.println("An error occurred while reading the file");
+            e.printStackTrace();
+        }
+
+
+    }
+    public void wc(String [] args) {
+
+        try {
+
+            int line_counter = 1 ; int words_counter = 1 ; int character_counter = 0 ;
+            FileInputStream file = new FileInputStream(args[0]);
+            int data; int empty = 1 ;
+
+            while ((data = file.read()) != -1) {
+
+                if(data==10)
+                {
+                    line_counter++ ;
+                }
+
+                if(data==32)
+                {
+                  words_counter++ ; character_counter++ ;
+                }
+
+                else
+                {
+                  character_counter++ ;
+                  empty = 0 ;
+                }
+
+            }
+
+            if(empty==1)
+            {
+                System.out.println(0 +" "+ 0 +" "+ 0+" " +args[0]);
+
+            }
+
+            else
+                System.out.println(line_counter +" "+ words_counter +" "+ character_counter+" "+args[0]);
+
+                file.close();
+        }
+
+
+
+
+        catch (FileNotFoundException e)
+        {
+            System.out.println("the file is not found");
+        }
+
+        catch (IOException e)
+        {
+            System.out.println("An error occurred while reading the file");
+            e.printStackTrace();
+        }
+
+
     }
 
-    // removes a file
-    public void rm(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Usage: rm [file]");
-        } else {
-            Path filePath = path.resolve(args[0]);
-            try {
-                if (Files.exists(filePath)) {
-                    if (Files.isDirectory(filePath)) {
-                        System.out.println("Error: The specified path is a directory. Use 'rm -r' to remove directories.");
-                    } else {
-                        Files.delete(filePath);
-                        System.out.println("File removed: " + args[0]);
-                    }
-                } else {
-                    System.out.println("File not found: " + args[0]);
-                }
-            } catch (IOException e) {
-                System.out.println("Error removing file: " + e.getMessage());
-            }
-        }
-    }
+
+
+
 
     public void chooseCommandAction() {
         switch (parser.getCommandName()) {
-            // 1
             case "cd" -> cd(parser.getArgs());
-            // 2
             case "pwd" -> pwd();
-            // 3
             case "echo" -> echo(parser.getArgs());
-            // 4
             case "ls" -> ls();
-            // 5
             case "ls -r" -> ls_r();
-            // 6
             case "mkdir" -> mkdir(parser.getArgs());
-            // 7
             case "rmdir" -> rmdir(parser.getArgs());
-            // 8
-            case "history" -> history();
-            // 9
-            case "touch" -> touch(parser.getArgs());
-            // 10
-            case "rm" -> rm(parser.getArgs());
-
             case "exit" -> System.exit(0);
+            case "cat"->cat(parser.getArgs());
+            case "wc"->wc(parser.getArgs());
 
-            default -> System.out.println("Command not found");
+
+
+            default ->System.out.println("the term is not recognized");
+
         }
     }
+
+
+}
+
+public class Main {
 
     public static void main(String[] args) {
 
@@ -222,15 +259,9 @@ class Terminal {
         for (; ; ) {
             System.out.print('>');
             userInput = input.nextLine();
-            if (ter.parser.parse(userInput)) {
-                ter.chooseCommandAction();
-            } else {
-                System.out.println("Invalid Command");
-            }
-
+            ter.parser.parse(userInput);
+            ter.chooseCommandAction();
         }
     }
+
 }
-
-
-
